@@ -1,0 +1,22 @@
+[project]
+name = "todos"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Tayyab Khurram",email = "tayyabsheikh.pakistan@gmail.com"}
+]
+
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi (>=0.127.1,<0.128.0)",
+    "sqlmodel (>=0.0.30,<0.0.31)",
+    "uvicorn (>=0.15.0,<0.16.0)"
+]
+
+[tool.poetry.scripts]
+dev="todos.main:start"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
