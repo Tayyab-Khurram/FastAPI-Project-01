@@ -4,9 +4,27 @@ import uvicorn
 app = FastAPI()
 
 
+students = [
+    {"name": "Tayyab", "RollNo": 520},
+    {"name": "Ali", "RollNo": 521},
+    {"name": "Bilal", "RollNo": 522},
+    {"name": "Abubakar", "RollNo": 523},
+]
+
+
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
+
+
+@app.get("/todos/{id}")
+def read_todo(id: int, userName: str, RollNo: int):
+    return {f"User {userName} with Roll No {RollNo} has a todo item with id {id}"}
+
+
+@app.get("/students")
+def read_students():
+    return students
 
 
 @app.get("/todos")
