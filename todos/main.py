@@ -23,9 +23,15 @@ def read_root():
     return {"message": "Hello World"}
 
 
+'''
+id : Path parameter
+cnic, city : Query parameters
+student — a Student Pydantic model : Body parameter
+'''
 @app.get("/todos/{id}")
-def read_todo(id: int, userName: str, RollNo: int):
-    return {f"User {userName} with Roll No {RollNo} has a todo item with id {id}"}
+def read_todo(id: int, cnic: str, city: str, student: Student):
+    return student
+    
 
 
 @app.get("/students")
