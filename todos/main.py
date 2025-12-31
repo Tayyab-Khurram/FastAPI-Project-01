@@ -1,32 +1,26 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from sqlmodel import SQLModel, Field, create_engine, Session
-
-connection_string = "sqlite:///stdbase.db"
+import db
 
 app = FastAPI()
 
 
-class Students(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    name: str
-    age: int
-    phone: str
-    address: str | None = None
+student_1 = db.Students(name="Tayyab", age=21, phone="0321456789")
+student_2 = db.Students(name="Ali", age=22, phone="0321987654", address="Lahore")
 
 
-student_1 = Students(name="Tayyab", age=21, phone="0321456789")
-student_2 = Students(name="Ali", age=22, phone="0321987654", address="Lahore")
+@app.post("/add_students")
+def add_students():
+    return db.add_students([student_1, student_2])
 
-connection = create_engine(connection_string)
-SQLModel.metadata.create_all(connection)
 
-with Session(connection) as session:
-    session.add(student_1)
-    session.add(student_2)
-    session.commit()
+@app.get("/get_students")
+def get_students():
+    return db.get_students()
 
+
+# This is the in-memory list to store student data
 students = [
     {"name": "Tayyab", "RollNo": 520},
     {"name": "Ali", "RollNo": 521},
