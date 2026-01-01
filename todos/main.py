@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from todos.schemas import Todos
-from todos.db import create_db_and_tables
-from todos.db import add_todos, get_todos
+from todos.schemas import Todo
+from todos.db import add_todos, get_todos, create_db_and_tables
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,12 +10,12 @@ load_dotenv()
 app = FastAPI()
 
 
-student_1 = Todos(
+student_1 = Todo(
     title="Watch Lectures",
     description="Watch FastAPI lectures on YouTube",
     is_completed=False,
 )
-student_2 = Todos(
+student_2 = Todo(
     title="Drink Chai",
     description="Make and drink a cup of chai",
     priority=4,
@@ -32,6 +31,11 @@ def add_todos():
 @app.get("/get_todos")
 def get_todos():
     return get_todos()
+
+
+@app.put('/update_todo/{id}')
+def update_todo():
+    return update_todo(id)
 
 
 # ----------------------------------------- Purana Code -----------------------
