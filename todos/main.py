@@ -1,32 +1,43 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from sqlmodel import SQLModel, Field, create_engine, Session
+from todos.schemas import Todos
+from todos.db import create_db_and_tables
+from todos.db import add_todos, get_todos
+from dotenv import load_dotenv
 
-connection_string = "sqlite:///stdbase.db"
+load_dotenv()
 
 app = FastAPI()
 
 
-class Students(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
-    name: str
-    age: int
-    phone: str
-    address: str | None = None
+student_1 = Todos(
+    title="Watch Lectures",
+    description="Watch FastAPI lectures on YouTube",
+    is_completed=False,
+)
+student_2 = Todos(
+    title="Drink Chai",
+    description="Make and drink a cup of chai",
+    priority=4,
+    is_completed=True,
+)
 
 
-student_1 = Students(name="Tayyab", age=21, phone="0321456789")
-student_2 = Students(name="Ali", age=22, phone="0321987654", address="Lahore")
+@app.post("/add_todos")
+def add_todos():
+    return add_todos([student_1, student_2])
 
-connection = create_engine(connection_string)
-SQLModel.metadata.create_all(connection)
 
-with Session(connection) as session:
-    session.add(student_1)
-    session.add(student_2)
-    session.commit()
+@app.get("/get_todos")
+def get_todos():
+    return get_todos()
 
+
+# ----------------------------------------- Purana Code -----------------------
+
+
+# This is the in-memory list to store student data
 students = [
     {"name": "Tayyab", "RollNo": 520},
     {"name": "Ali", "RollNo": 521},
@@ -96,4 +107,5 @@ def read_todos():
 
 
 def start():
+    create_db_and_tables()
     uvicorn.run("todos.main:app", host="127.0.0.1", port=8080, reload=True)
