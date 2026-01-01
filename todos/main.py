@@ -1,23 +1,40 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-import db
+from todos.schemas import Todos
+from todos.db import create_db_and_tables
+from todos.db import add_todos, get_todos
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
 
-student_1 = db.Students(name="Tayyab", age=21, phone="0321456789")
-student_2 = db.Students(name="Ali", age=22, phone="0321987654", address="Lahore")
+student_1 = Todos(
+    title="Watch Lectures",
+    description="Watch FastAPI lectures on YouTube",
+    is_completed=False,
+)
+student_2 = Todos(
+    title="Drink Chai",
+    description="Make and drink a cup of chai",
+    priority=4,
+    is_completed=True,
+)
 
 
-@app.post("/add_students")
-def add_students():
-    return db.add_students([student_1, student_2])
+@app.post("/add_todos")
+def add_todos():
+    return add_todos([student_1, student_2])
 
 
-@app.get("/get_students")
-def get_students():
-    return db.get_students()
+@app.get("/get_todos")
+def get_todos():
+    return get_todos()
+
+
+# ----------------------------------------- Purana Code -----------------------
 
 
 # This is the in-memory list to store student data
@@ -90,4 +107,5 @@ def read_todos():
 
 
 def start():
+    create_db_and_tables()
     uvicorn.run("todos.main:app", host="127.0.0.1", port=8080, reload=True)
