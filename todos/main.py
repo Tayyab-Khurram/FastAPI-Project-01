@@ -1,11 +1,17 @@
+from dotenv import load_dotenv
+
+load_dotenv()
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
 from todos.schemas import Todo
-from todos.db import add_todos, get_todos, create_db_and_tables
-from dotenv import load_dotenv
-
-load_dotenv()
+from todos.db import (
+    add_todos,
+    get_todos,
+    update_todo,
+    delete_todo,
+    create_db_and_tables,
+)
 
 app = FastAPI()
 
@@ -23,19 +29,24 @@ student_2 = Todo(
 )
 
 
-@app.post("/add_todos")
+@app.post("/add_todo")
 def add_todos():
     return add_todos([student_1, student_2])
 
 
-@app.get("/get_todos")
+@app.get("/get_todo")
 def get_todos():
     return get_todos()
 
 
-@app.put('/update_todo/{id}')
-def update_todo():
+@app.put("/update_todo/{id}")
+def update_todos():
     return update_todo(id)
+
+
+@app.delete("/delete_todo/{id}")
+def delete_todos():
+    return delete_todo(id)
 
 
 # ----------------------------------------- Purana Code -----------------------

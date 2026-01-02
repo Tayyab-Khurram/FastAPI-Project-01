@@ -9,9 +9,6 @@ connection_engine = create_engine(connection_string)
 
 
 def create_db_and_tables():
-    if connection_engine.has_table(Todo.__tablename__):
-        print("Table already exist.")
-        return
     SQLModel.metadata.create_all(connection_engine)
 
 
@@ -54,3 +51,16 @@ def update_todo(id: int, todo: UpdateTodo):
         session.commit()
         session.refresh(todo_data)
         return {"status": 200, "todo": todo_data}
+
+
+def delete_todo(id: int, todo: Todo):
+    with Session(connection_engine) as session:
+        statement = select(Todo).where(Todo.id == id)
+        results = session.exec(statement)
+        if not results:
+            raise HTTPException(status_code=404, detail="No Todo found against this id")
+        todo_to_delete = results.one()
+        session.delete(todo_to_delete)
+        session.commit()
+        session.refresh(todo_to_delete)
+        return {"status": 200, "todo": todo_to_delete}
