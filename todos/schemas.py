@@ -1,13 +1,19 @@
 from sqlmodel import SQLModel, Field
 
 
-class Todo(SQLModel, table=True):
-    __tablename__ = "todo"
-    id: int = Field(default=None, primary_key=True)
+class TodoBase(SQLModel):
     title: str
     description: str
     priority: int | None = None
     is_completed: bool = False
+
+
+class Todo(TodoBase, table=True):
+    id: int = Field(default=None, primary_key=True)
+
+
+class CreateTodo(TodoBase):
+    pass
 
 
 class UpdateTodo(SQLModel):

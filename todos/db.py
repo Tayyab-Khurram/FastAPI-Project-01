@@ -1,7 +1,9 @@
 from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from sqlmodel import SQLModel, create_engine, Session, select
-from todos.schemas import Todo, UpdateTodo
+from todos.schemas import Todo, UpdateTodo, CreateTodo
 import os
+import csv
 
 connection_string = os.getenv("DB_URI")
 print(f"Using database connection string: {connection_string}")
@@ -12,55 +14,69 @@ def create_db_and_tables():
     SQLModel.metadata.create_all(connection_engine)
 
 
-def add_todos(todo: Todo):
+def add_todo(todo: CreateTodo):
     with Session(connection_engine) as session:
-        session.add(todo)
+        db_todo = Todo.model_validate(todo)
+        session.add(db_todo)
         session.commit()
-        session.refresh(todo)
-        return {"status": 200, "todo": todo}
+        session.refresh(db_todo)
+        return {"status": 200, "todo": db_todo}
 
 
-def get_todos():
+def get_todo(id: int):
     with Session(connection_engine) as session:
-        statement = select(Todo)
-        results = session.exec(statement)
-        todos_data = results.all()
-    return todos_data
+        todo = session.get(Todo, id)
+        if not todo:
+            raise HTTPException(status_code=404, detail="No Todo found against this id")
+        return {"status": 200, "todo": todo}
 
 
 def update_todo(id: int, todo: UpdateTodo):
     with Session(connection_engine) as session:
-        statement = select(Todo).where(Todo.id == id)
-        results = session.exec(statement)
-        if not results:
+        result = session.get(Todo, id)
+        if not result:
             raise HTTPException(status_code=404, detail="No Todo found against this id")
-        todo_data = results.one()
-        todo_data.title = todo.title if todo.title is not None else todo_data.title
-        todo_data.description = (
-            todo.description if todo.description is not None else todo_data.description
-        )
-        todo_data.priority = (
-            todo.priority if todo.priority is not None else todo_data.priority
-        )
-        todo_data.is_completed = (
-            todo.is_completed
-            if todo.is_completed is not None
-            else todo_data.is_completed
-        )
-        session.add(todo_data)
+        db_todo = todo.model_dump(exclude_unset=True)
+        result.sqlmodel_update(db_todo)
+        session.add(result)
         session.commit()
-        session.refresh(todo_data)
-        return {"status": 200, "todo": todo_data}
+        session.refresh(result)
+        return {"status": 200, "todo": result}
 
 
-def delete_todo(id: int, todo: Todo):
+def delete_todo(id: int):
     with Session(connection_engine) as session:
-        statement = select(Todo).where(Todo.id == id)
-        results = session.exec(statement)
-        if not results:
+        result = session.get(Todo, id)
+        if not result:
             raise HTTPException(status_code=404, detail="No Todo found against this id")
-        todo_to_delete = results.one()
-        session.delete(todo_to_delete)
+        session.delete(result)
         session.commit()
-        session.refresh(todo_to_delete)
-        return {"status": 200, "todo": todo_to_delete}
+        return {"status": 200, "todo": result}
+
+
+def get_all_todos():
+    with Session(connection_engine) as session:
+        statement = select(Todo).order_by(Todo.id)
+        todos = session.exec(statement).all()
+        todos_dict = [todo.model_dump() for todo in todos]
+        
+        if not todos_dict:
+            print("No todos found")
+            return
+        
+        fieldnames = todos_dict[0].keys()
+        filename = "all_todos.csv"
+
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(todos_dict)
+
+        return FileResponse(
+            path=filename,
+            filename="all_todos.csv",
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": "attachment; filename=all_todos.csv"
+            }
+        )

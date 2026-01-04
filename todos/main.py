@@ -1,15 +1,15 @@
 from dotenv import load_dotenv
-
 load_dotenv()
 from fastapi import FastAPI
 from pydantic import BaseModel
 import uvicorn
-from todos.schemas import Todo
+from todos.schemas import Todo, UpdateTodo
 from todos.db import (
-    add_todos,
-    get_todos,
+    add_todo,
+    get_todo,
     update_todo,
     delete_todo,
+    get_all_todos,
     create_db_and_tables,
 )
 
@@ -30,24 +30,28 @@ student_2 = Todo(
 
 
 @app.post("/add_todo")
-def add_todos():
-    return add_todos([student_1, student_2])
+def add_todos(todo: Todo):
+    return add_todo(todo)
 
 
-@app.get("/get_todo")
-def get_todos():
-    return get_todos()
+@app.get("/get_todo/{id}")
+def get_todos(id: int):
+    return get_todo(id)
 
 
 @app.put("/update_todo/{id}")
-def update_todos():
-    return update_todo(id)
+def update_todos(id: int, todo: UpdateTodo):
+    return update_todo(id, todo)
 
 
 @app.delete("/delete_todo/{id}")
-def delete_todos():
+def delete_todos(id: int):
     return delete_todo(id)
 
+
+@app.get('/get_csv')
+def download_all_todos():
+    return get_all_todos()
 
 # ----------------------------------------- Purana Code -----------------------
 
@@ -71,15 +75,13 @@ def read_root():
     return {"message": "Hello World"}
 
 
-"""
-id : Path parameter
-cnic, city : Query parameters
-student — a Student Pydantic model : Body parameter
-"""
-
-
 @app.get("/todos/{id}")
 def read_todo(id: int, cnic: str, city: str, student: Student):
+    """
+    id : Path parameter
+    cnic, city : Query parameters
+    student — a Student Pydantic model : Body parameter
+    """
     return student
 
 
@@ -109,7 +111,7 @@ def delete_student(name: str, RollNo: int):
     return {"message": "Student not found"}
 
 
-@app.get("/todos")
+@app.get("/default_todos")
 def read_todos():
     return {
         "todos": [
